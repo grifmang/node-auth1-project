@@ -22,7 +22,9 @@ const sessionConfig = {
         sidfieldname: 'sid',
         createtable: true,
         clearInterval: 60000,
-    })
+    }),
+    loggedIn: false,
+    userId: ''
 };
 
 server.use(express.json());
