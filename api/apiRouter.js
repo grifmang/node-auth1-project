@@ -2,6 +2,7 @@ const express = require('express');
 const api = require('./apiModel.js');
 const db = require('../data/dbConfig.js');
 const bc = require('bcryptjs');
+const restricted = require('./middleware.js');
 
 const router = express.Router();
 
@@ -34,6 +35,8 @@ router.post('/login', async (req, res) => {
     if (req.body.username && req.body.password) {
         const user = await api.getUserByUsername(req.body.username);
         if (user && bc.compareSync(req.body.password, user.password)) {
+            req.session.loggedIn = true;
+            req.session.userId = user.id;
             return res.status(201).json({ token: user.password, message: "Logged In." })
         }
         else {
@@ -44,7 +47,7 @@ router.post('/login', async (req, res) => {
     }
 })
 
-router.get('/users', (req, res) => {
+router.get('/users', restricted, (req, res) => {
     api.getUsers()
         .then(response => {
             return res.status(200).json(response);
@@ -54,16 +57,5 @@ router.get('/users', (req, res) => {
             return res.status(500).json({ error: "Error getting users." });
         });
 })
-
-// async function validated(req, res, next) {
-//     if (req.body.username && req.body.password) {
-//         const user = await api.getUserByUsername(req.body.username);
-//         if (user && localStorage.getItem('token')) {
-//             return next();
-//         }
-//     } else {
-//         return res.status(400).json({ error: "Username and Password are required." })
-//     }
-// }
 
 module.exports = router;
